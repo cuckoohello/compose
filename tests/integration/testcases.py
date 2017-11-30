@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import functools
 import os
+import six
 
 import pytest
 from docker.errors import APIError
@@ -185,3 +186,12 @@ def no_cluster(reason):
         return wrapper
 
     return decorator
+
+def if_runtime_available(runtime):
+    if runtime == 'nvidia':
+        command = 'nvidia-container-runtime'
+        if six.PY3:
+            import shutil
+            return shutil.which(command) is not None
+        return any(os.access(os.path.join(path, command), os.X_OK) for path in os.environ["PATH"].split(os.pathsep))
+    return False
